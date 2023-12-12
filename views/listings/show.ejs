@@ -1,0 +1,186 @@
+<% layout("/layouts/boilerplate.ejs") %>
+<script>
+  credentials = "<%= process.env.MAP_KEY %>";
+  locationForMap = "<%= geoLocation %>";
+</script>
+
+<body>
+  <div class="container">
+    <div class="container mt-4 mb-4">
+      <div class="card m-auto" style="width: 40rem">
+        <img
+          src="<%= listing.image.url %>"
+          class="card-img-top"
+          alt="..."
+          style="height: 25rem; object-fit: cover"
+        />
+        <div class="card-body">
+          <h5 class="card-title"><%= listing.title %></h5>
+          <h5 class="card-title">
+            <i>Owned by: <%= listing.owner.username %></i>
+          </h5>
+          <p class="card-text"><%= listing.description %></p>
+        </div>
+        <ul class="list-group list-group-flush">
+          <li class="list-group-item">
+            &#8377; <%= listing.price.toLocaleString("en-IN") %> +18% GST
+            <h6 style="color: green">
+              Your have to pay: &#8377; <%= (listing.price + (listing.price *
+              0.18)).toLocaleString("en-IN") %>
+            </h6>
+          </li>
+          <li class="list-group-item"><%= listing.location %></li>
+          <li class="list-group-item"><%= listing.country %></li>
+        </ul>
+        <% if(currUser && currUser._id.equals(listing.owner._id)){ %>
+        <div class="card-body row">
+          <form action="/listing/<%= listing._id %>/edit" class="col-2">
+            <button class="btn btn-primary">Edit</button>
+          </form>
+          <form
+            action="/listing/<%= listing._id %>?_method=DELETE"
+            method="post"
+            class="col-6"
+          >
+            <button class="btn btn-primary">Delete</button>
+          </form>
+        </div>
+        <% } %>
+      </div>
+    </div>
+    <!-- reviews -->
+    <% if(listing.reviews.length){ %>
+    <div class="container">
+      <h4>Reviews</h4>
+      <swiper-container
+        class="mySwiper"
+        pagination="true"
+        pagination-clickable="true"
+        slides-per-view="4"
+        centered-slides="true"
+        space-between="30"
+        grab-cursor="true"
+      >
+        <% for(review of listing.reviews){ %>
+        <swiper-slide>
+          <div class="card border border-dark-subtle overflow-auto p-3">
+            <h4><%= review.author.username %></h4>
+            <div class="card-body">
+              <p
+                class="starability-result card-title border-bottom"
+                data-rating="<%= review.rating %>"
+              >
+                Rated: 3 stars
+              </p>
+
+              <!-- <h6 class="card-subtitle mb-2 text-body-secondary">Card subtitle</h6> -->
+              <p class="card-text border-bottom"><%= review.comment %></p>
+              <form
+                action="/listing/<%= listing._id %>/review/<%= review._id %>?_method=DELETE"
+                method="post"
+              >
+                <button class="btn btn-primary">Delete</button>
+              </form>
+            </div>
+          </div>
+        </swiper-slide>
+        <% } %>
+      </swiper-container>
+    </div>
+    <% } %>
+    <!-- review form -->
+    <div class="row">
+      <div class="col-6 m-auto">
+        <% if(currUser){ %>
+        <div class="container mt-5 mb-4" id="ratingCont">
+          <h4>Leave a review</h4>
+          <form
+            action="/listing/<%= listing._id %>/review"
+            method="post"
+            class="needs-validation"
+            novalidate
+          >
+            <div class="rating mb-3">
+              <fieldset class="starability-coinFlip">
+                <legend>Review</legend>
+                <input
+                  type="radio"
+                  id="no-rate"
+                  class="input-no-rate"
+                  name="Review[rating]"
+                  value="1"
+                  checked
+                  aria-label="No rating."
+                />
+                <input
+                  type="radio"
+                  id="first-rate1"
+                  name="Review[rating]"
+                  value="1"
+                />
+                <label for="first-rate1" title="Terrible">1 star</label>
+                <input
+                  type="radio"
+                  id="first-rate2"
+                  name="Review[rating]"
+                  value="2"
+                />
+                <label for="first-rate2" title="Not good">2 stars</label>
+                <input
+                  type="radio"
+                  id="first-rate3"
+                  name="Review[rating]"
+                  value="3"
+                />
+                <label for="first-rate3" title="Average">3 stars</label>
+                <input
+                  type="radio"
+                  id="first-rate4"
+                  name="Review[rating]"
+                  value="4"
+                />
+                <label for="first-rate4" title="Very good">4 stars</label>
+                <input
+                  type="radio"
+                  id="first-rate5"
+                  name="Review[rating]"
+                  value="5"
+                />
+                <label for="first-rate5" title="Amazing">5 stars</label>
+              </fieldset>
+              <div class="invalid-feedback">Please Rate</div>
+            </div>
+            <div class="mb-3">
+              <label for="comment" class="form-label">Comment : </label>
+              <textarea
+                name="Review[comment]"
+                cols="3"
+                rows="5"
+                placeholder="Lovely Place"
+                class="form-control m-auto"
+                required
+              ></textarea>
+              <div class="valid-feedback">Looks good!</div>
+              <div class="invalid-feedback">Please Write a Review</div>
+            </div>
+            <button type="submit" class="btn btn-primary mb-3">Post</button>
+          </form>
+        </div>
+        <% } %>
+      </div>
+    </div>
+
+    <div class="container mt-5 mb-4">
+      <h3 class="mb-3">Where you'll be</h3>
+      <div id="myMap"></div>
+    </div>
+  </div>
+</body>
+<script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-element-bundle.min.js"></script>
+<script
+  type="text/javascript"
+  src="http://www.bing.com/api/maps/mapcontrol?callback=GetMap"
+  async
+  defer
+></script>
+<script src="/js/map.js"></script>
